@@ -548,36 +548,36 @@
   </div>
 
   <!-- FORM -->
-  <div class="form-card" id="formCard">
-    <div class="form-title">Simulação gratuita</div>
-    <div class="form-subtitle">Preencha abaixo e recebo sua simulação personalizada em minutos — sem compromisso.</div>
+ <form id="captureForm" onsubmit="handleSubmit(event)" novalidate>
 
-    <form id="captureForm" onsubmit="handleSubmit(event)" novalidate>
+  <div class="form-group">
+    <label class="form-label" for="nome">Seu nome</label>
+    <input class="form-input" type="text" id="nome" placeholder="Como posso te chamar?">
+    <div class="error-msg" id="nomeError">Por favor, informe seu nome.</div>
+  </div>
 
-      <div class="form-group">
-        <label class="form-label" for="nome">Seu nome</label>
-        <input class="form-input" type="text" id="nome" name="nome" placeholder="Como posso te chamar?" autocomplete="given-name" inputmode="text">
-        <div class="error-msg" id="nomeError">Por favor, informe seu nome.</div>
-      </div>
+  <div class="form-group">
+    <label class="form-label" for="telefone">WhatsApp</label>
+    <input class="form-input" type="tel" id="telefone" placeholder="(00) 00000-0000" oninput="maskPhone(this)">
+    <div class="error-msg" id="telefoneError">Por favor, informe um WhatsApp válido.</div>
+  </div>
 
-      <div class="form-group">
-        <label class="form-label" for="telefone">WhatsApp</label>
-        <input class="form-input" type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" autocomplete="tel" inputmode="tel" oninput="maskPhone(this)">
-        <div class="error-msg" id="telefoneError">Por favor, informe um WhatsApp válido.</div>
-      </div>
+  <div class="form-group">
+    <label class="form-label" for="email">E-mail</label>
+    <input class="form-input" type="email" id="email" placeholder="seu@email.com">
+    <div class="error-msg" id="emailError">Por favor, informe um e-mail válido.</div>
+  </div>
 
-      <div class="form-group">
-        <label class="form-label" for="email">E-mail</label>
-        <input class="form-input" type="email" id="email" name="email" placeholder="seu@email.com" autocomplete="email" inputmode="email">
-        <div class="error-msg" id="emailError">Por favor, informe um e-mail válido.</div>
-      </div>
+  <button type="submit" class="submit-btn" id="submitBtn">
+    <span id="btnText">Quero minha simulação gratuita →</span>
+    <span class="spinner" id="btnSpinner" style="display:none"></span>
+  </button>
 
-      <button type="submit" class="submit-btn" id="submitBtn">
-        <span id="btnText">Quero minha simulação gratuita →</span>
-        <span class="spinner" id="btnSpinner" style="display:none"></span>
-      </button>
+  <div class="privacy-note">🔒 Seus dados estão protegidos. Não fazemos spam.</div>
 
-      <div class="privacy-note">🔒 Seus dados estão protegidos. Não fazemos spam.</div>
+</form>
+
+<iframe name="hidden_iframe" style="display:none;"></iframe>
     </form>
   </div>
 
@@ -684,31 +684,46 @@
   }
 
   // SUBMIT
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!validateForm()) return;
+  async function handleSubmit(e) {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    const btn = document.getElementById('submitBtn');
-    const btnText = document.getElementById('btnText');
-    const spinner = document.getElementById('btnSpinner');
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const spinner = document.getElementById('btnSpinner');
 
-    btn.classList.add('loading');
-    btnText.style.display = 'none';
-    spinner.style.display = 'block';
+  btn.classList.add('loading');
+  btnText.style.display = 'none';
+  spinner.style.display = 'block';
 
-    const nome = document.getElementById('nome').value.trim();
-    const telefone = document.getElementById('telefone').value.replace(/\D/g, '');
-    const email = document.getElementById('email').value.trim();
+  const nome = document.getElementById('nome').value.trim();
+  const telefone = document.getElementById('telefone').value.replace(/\D/g, '');
+  const email = document.getElementById('email').value.trim();
 
-    // Aqui você integra com seu CRM, planilha ou webhook
-    // Exemplo: fetch para seu webhook do n8n, Make, ou Google Sheets
-    console.log('Lead capturado:', { nome, telefone, email });
+  const url = "https://docs.google.com/forms/d/e/1FAIpQLSeBM35_7S7WlIjF5bNtsdIU4vfAypudFzQ16H6Z9rjEt1WsMA/formResponse";
 
-    // Simula envio (substitua pelo seu endpoint real)
-    setTimeout(() => {
-      showSuccess(nome, telefone);
-    }, 1200);
+  const formData = new FormData();
+  formData.append("entry.948850067", nome);
+  formData.append("entry.1861064621", telefone);
+  formData.append("entry.815847481", email);
+
+  try {
+    await fetch(url, {
+      method: "POST",
+      mode: "no-cors",
+      body: formData
+    });
+
+    // sucesso
+    showSuccess(nome, telefone);
+
+  } catch (error) {
+    alert("Erro ao enviar. Tente novamente.");
+    btn.classList.remove('loading');
+    btnText.style.display = 'block';
+    spinner.style.display = 'none';
   }
+}
 
   function showSuccess(nome, telefone) {
     document.getElementById('formCard').style.display = 'none';
